@@ -1,4 +1,4 @@
-# Deneyap Dual Channel Motor Driver TC78H660FTG Arduino Library
+# Deneyap Dual Channel Motor Driver Arduino Library
 [FOR TURKISH VERSION](docs/README_tr.md) ![trflag](https://github.com/deneyapkart/deneyapkart-arduino-core/blob/master/docs/tr.png)
 
 ***** Add photo ****
@@ -9,7 +9,7 @@ Arduino library for Deneyap Dual Channel Motor Driver TC78H660FTG
 - `Product ID` **M20**, **mpv1.0**
 - `MCU` TC78H660FTG, STM8S003F3
 - `Weight` 
-- `Module Dimension`
+- `Module Dimension` 25,4 mm x 38,1 mm
 - `I2C address` 0x16, 0x17, 0x18, 0x19
 
 | Address |  | 
@@ -20,14 +20,18 @@ Arduino library for Deneyap Dual Channel Motor Driver TC78H660FTG
 | 0x19| address when ADR1 and ADR2 pads are shorted |
 
 ## :closed_book:Documentation
-Deneyap Dual Channel Motor Driver TC78H660FTG
+[Deneyap Dual Channel Motor Driver](https://docs.deneyapkart.org/en/content/contentDetail/deneyap-module-deneyap-dual-channel-motor-driver-m)
 
-[TC78H660FTG](https://www.mouser.com.tr/datasheet/2/408/TC78H660FTG_datasheet_en_20200714-1713920.pdf)
+[Deneyap Dual Channel Motor Driver Shematic](https://cdn.deneyapkart.org/media/upload/userFormUpload/M7vZpQGvXRLxsH7HJsgpplR93ygaxZ9P.pdf)
+
+[Deneyap Dual Channel Motor Driver Mechanical Drawing](https://cdn.deneyapkart.org/media/upload/userFormUpload/2EPBc4V9PklIkCudDzVfQ6MZSH6xxOCu.pdf)
+
+[TC78H660FTG-datasheet](https://toshiba.semicon-storage.com/info/TC78H660FTG_datasheet_en_20200714.pdf?did=68604&prodName=TC78H660FTG)
 
 [How to install a Arduino Library](https://docs.arduino.cc/software/ide-v1/tutorials/installing-libraries)
 
-## :pushpin:Deneyap Dual Channel Motor Driver TC78H660FTG
-This Arduino library allows you to use Deneyap Dual Channel Motor Driver TC78H660FTG with I2C peripheral. You can use this library in your projects with any Arduino compatible board with I2C peripheral.
+## :pushpin:Deneyap Dual Channel Motor Driver
+This Arduino library allows you to use Deneyap Dual Channel Motor Driver with I2C peripheral. You can use this library in your projects with any Arduino compatible board with I2C peripheral.
 
 ## :globe_with_meridians:Repository Contents
 - `/docs ` README_tr.md and product photos
@@ -37,12 +41,15 @@ This Arduino library allows you to use Deneyap Dual Channel Motor Driver TC78H66
 - `library.properties ` General library properties for the Arduino package manager
 
 ## Version History
+1.1.0 - added new class(Stepper), added new functions(StepDriver, PwmConfig, StandBy, Mode, setSpeed, step), updated function(begin), added new sketch(StepMotorTamTurSurme), updated sketch(CiftKanalliDCmotorSurme)
+
 1.0.0 - initial release
 
 ## :rocket:Hardware Connections
-- Deneyap Dual Channel Motor Driver TC78H660FTG and Board can be connected with I2C cable
+- Deneyap Dual Channel Motor Driver and Board can be connected with I2C cable
 - or 3V3, GND, SDA and SCL pins can be connected with jumper cables
 
+## Headers
 |Dual Channel Motor Driver| Function | Board pins | 
 |:--- |   :---  | :---|
 |3.3V | Power   |3.3V |      
@@ -51,12 +58,30 @@ This Arduino library allows you to use Deneyap Dual Channel Motor Driver TC78H66
 |SCL  | I2C Clock | SCL pin |
 |SWIM | Debug | no connection |
 |RES  | Debug | no connection |
-|IN1A|||
-|IN1B|||
-|IN2A|||
-|IN2B|||
-|STBY|||
-|MODE|||
+|IN1A	|Phase A |Digital pin|
+|IN1B	|Enable A|PWM pin|
+|IN2A	|Phase B |Digital pin|
+|IN2B	|Enable B|PWM pin|
+|STBY	|Standby pin|Digital pin|
+|MODE 	|Control mode select pin|Digital pin|
+
+## Terminal (Left Down)
+|Module pin|Pins|
+|:--- |   :---  |
+|VM |Motor Power|
+|GND|Motor Ground|
+
+## Terminal (Right Down)
+|Module pin|Pins|
+|:--- |   :---  |
+|AO+|1. motor (+)|
+|AO-|1. motor (-)|
+
+## Terminal (Right Up)
+|Module pin|Pins|
+|:--- |   :---  |
+|BO+|2. motor (+)|
+|BO-|2. motor (-)|
 
 ## :bookmark_tabs:License Information
 Please review the [LICENSE](https://github.com/deneyapkart/deneyap-cift-kanalli-motor-surucu-arduino-library/blob/master/LICENSE) file for license information.

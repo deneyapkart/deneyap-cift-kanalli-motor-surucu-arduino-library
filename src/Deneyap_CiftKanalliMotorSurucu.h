@@ -1,53 +1,57 @@
 /*
 *******************************************************************************************
 @file         Deneyap_CiftKanalliMotorSurucu.h
-@mainpage     Deneyap Dual Channel Motor Driver TC78H660FTG Arduino library header file
-@version      v1.0.0
-@date         June 23, 2022
+@mainpage     Deneyap Dual Channel Motor Driver Arduino library header file
+@version      v1.1.0
+@date         November 22, 2022
 @brief        This file contains all function prototypes and macros
-              for Deneyap Dual Channel Motor Driver TC78H660FTG Arduino library
+              for Deneyap Dual Channel Motor Driver Arduino library
 ********************************************************************************************
 */
 
-#ifndef __TC78H660FTG_H
-#define __TC78H660FTG_H
+#ifndef __Deneyap_CiftKanalliMotorSurucu_H
+#define __Deneyap_CiftKanalliMotorSurucu_H
 
 #include <Wire.h>
 #include <Arduino.h>
-#include <deneyap.h>
 
 #define I2C_SLV_ADDR_DEFAULT    (uint8_t)0x16
 #define I2C_SLV_ADDR_ALT1       (uint8_t)(I2C_SLV_ADDR_DEFAULT + 1)
 #define I2C_SLV_ADDR_ALT2       (uint8_t)(I2C_SLV_ADDR_DEFAULT + 2)
 #define I2C_SLV_ADDR_ALT3       (uint8_t)(I2C_SLV_ADDR_DEFAULT + 3)
 
-#define DATA_BUFFER_SIZE        2     // in Byte (max data size)
+#define DATA_BUFFER_SIZE        4     // in Byte (max data size)
 
-#define SDA_PIN                 4
-#define SCL_PIN                 15
+#define DISABLE                 0
+#define ENABLE                  1 
+
+#define STEP                    0
+#define DCMOTOR                 1
 
 typedef struct                        // Data packet (protocol) created by master
-{																			// for I2C data exchange process 
-  uint8_t command       : 3;
-  uint8_t dataSize      : 2;
+{                                     // for I2C data exchange process 
+  uint8_t command       : 4;
+  uint8_t dataSize      : 4;
   uint8_t data[DATA_BUFFER_SIZE];
-} TC78H660FTG_DataPacket_TypeDef;
+} DualMotorDriver_DataPacket_TypeDef;
 
-enum TC78H660FTG_packetCommands                   // Commands in data packet (protocol)
+enum DualMotorDriver_packetCommands                   // Commands in data packet (protocol)
 {
   DRIVE_MOTOR1 = (uint8_t)0x00,
   DRIVE_MOTOR2,
-  MOTOR_PWM,
-  MOTOR_DIRECTION,
-  TC78H660FTG_CHANGE_ADDR,
-  TC78H660FTG_REQUEST_FW_VERSION,
+  STEP_MOTOR,
+  MOTOR_PWM_SETTING,
+  STANDBY,
+  MODE,
+  DualMotorDriver_CHANGE_ADDR,
+  DualMotorDriver_REQUEST_FW_VERSION,
 };
 
 class DualMotorDriver
 { 
   public:
     /* Check device status */
-    bool begin(uint8_t address = I2C_SLV_ADDR_DEFAULT, TwoWire &port = Wire); 
+    bool begin(uint8_t address, uint32_t Freq = 500, TwoWire &port = Wire); 
     bool isConnected();                                                       
     uint16_t getFwVersion();                                                  
     bool setI2Caddress(uint8_t newAddress);                                      
@@ -55,17 +59,41 @@ class DualMotorDriver
     /* Functions for data manipulation (create and send packet data) */
     bool Motor1Drive(uint8_t dutyCycleData, uint8_t directionData);
     bool Motor2Drive(uint8_t dutyCycleData, uint8_t directionData);
-  
+    bool StepDriver(uint8_t in1A, uint8_t in1B, uint8_t in2A, uint8_t in2B);
+    bool PwmConfig(uint32_t freq);
+    bool StandBy(uint8_t standby);
+    bool Mode(uint8_t mode);
+
+    uint8_t i2cData2;
+    uint8_t i2cData1;
+
   private:
     TwoWire* _i2cPort;                // Port selection (0 or 1)
     uint8_t _i2cAddress;              // Device I2C address
-    TC78H660FTG_DataPacket_TypeDef _dataPacket;   // Struct to transfer data over I2C interface
+    DualMotorDriver_DataPacket_TypeDef _dataPacket;   // Struct to transfer data over I2C interface
 
     /* I2C data transaction functions */
-    uint8_t I2C_ReadData8bit(TC78H660FTG_DataPacket_TypeDef* dataPacket);
-    uint16_t I2C_ReadData16bit(TC78H660FTG_DataPacket_TypeDef* dataPacket);
-    bool I2C_SendDataPacket(TC78H660FTG_DataPacket_TypeDef* dataPacket);
+    uint8_t I2C_ReadData8bit(DualMotorDriver_DataPacket_TypeDef* dataPacket);
+    uint16_t I2C_ReadData16bit(DualMotorDriver_DataPacket_TypeDef* dataPacket);
+    bool I2C_SendDataPacket(DualMotorDriver_DataPacket_TypeDef* dataPacket);
+    uint16_t I2C_ReadFirmwareData16bit(DualMotorDriver_DataPacket_TypeDef *dataPacket);
 };
 
+class Stepper : public DualMotorDriver {
+  public:
+    Stepper(int number_of_steps);
+    void setSpeed(long whatSpeed);  // speed setter method
+    void step(int number_of_steps); // mover method
 
-#endif /* __TC78H660FTG_H */
+  private:
+    void stepMotor(int this_step);
+
+    int direction;            // Direction of rotation
+    unsigned long step_delay; // delay between steps, in ms, based on speed
+    int number_of_steps;      // total number of steps this motor can take
+    int step_number;          // which step the motor is on
+
+    unsigned long last_step_time; // time stamp in us of when the last step was taken
+};
+
+#endif /* Deneyap_CiftKanalliMotorSurucu_H */

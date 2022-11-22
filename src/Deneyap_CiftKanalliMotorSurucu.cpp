@@ -1,19 +1,18 @@
 /*
-*****************************************************************************
+*******************************************************************************************
 @file         Deneyap_CiftKanalliMotorSurucu.cpp
-@mainpage     Deneyap Dual Channel Motor Driver TC78H660FTG Arduino library 
-              source file
+@mainpage     Deneyap Dual Channel Motor Driver Arduino library source file
 @maintainer   RFtek Electronics <techsupport@rftek.com.tr>
-@version      v1.0.0
-@date         June 23, 2022
+@version      v1.1.0
+@date         November 22, 2022
 @brief        Includes functions to control Deneyap Dual Channel Motor Driver
-              TC78H660FTG Arduino library
+              Arduino library
 
 Library includes:
 --> Configuration functions
 --> Data manipulation functions
 --> I2C communication functions
-*****************************************************************************
+*******************************************************************************************
 */
 
 #include "Deneyap_CiftKanalliMotorSurucu.h"
@@ -25,14 +24,21 @@ Library includes:
 * @param  address: I2C address of the device, port: I2C port number (0 or 1)
 * @retval connection status (1 --> connected, 0 --> not connected)
 */
-bool DualMotorDriver::begin(uint8_t address, TwoWire &port)
-{
-   Wire.begin(SDA_PIN,SCL_PIN,50000);
+bool DualMotorDriver::begin(uint8_t address, uint32_t Freq, TwoWire &port) {
+  Wire.begin();
+#if defined(ARDUINO_DYM)
+  Wire.setClock(100000);
+#else
+  Wire.setClock(50000);
+#endif
   _i2cAddress = address;
   _i2cPort = &port;
-  _dataPacket = {0};
-
-  return isConnected();     
+  _dataPacket = { 0 };
+  PwmConfig(Freq);
+  StandBy(ENABLE);
+  //Motor1Drive(0, 0);
+  //Motor2Drive(0, 0);
+  return isConnected();
 }
 
 /**
@@ -40,11 +46,10 @@ bool DualMotorDriver::begin(uint8_t address, TwoWire &port)
 * @param  None
 * @retval connection status (1 --> connected, 0 --> not connected)
 */
-bool DualMotorDriver::isConnected()
-{
+bool DualMotorDriver::isConnected() {
   _i2cPort->beginTransmission(_i2cAddress);
 
-  if(_i2cPort->endTransmission() == 0)
+  if (_i2cPort->endTransmission() == 0)
     return true;
   return false;
 }
@@ -54,11 +59,10 @@ bool DualMotorDriver::isConnected()
 * @param  None
 * @retval Device firmware version
 */
-uint16_t DualMotorDriver::getFwVersion()
-{
-  _dataPacket.command = TC78H660FTG_REQUEST_FW_VERSION;
+uint16_t DualMotorDriver::getFwVersion() {
+  _dataPacket.command = DualMotorDriver_REQUEST_FW_VERSION;
   _dataPacket.dataSize = 0;
-  return I2C_ReadData16bit(&_dataPacket);
+  return I2C_ReadFirmwareData16bit(&_dataPacket);
 }
 
 /**
@@ -67,21 +71,17 @@ uint16_t DualMotorDriver::getFwVersion()
 * @retval Transmission status (1 --> No error, Otherwise --> Transmission error)
 */
 
-bool DualMotorDriver::setI2Caddress(uint8_t newAddress)
-{
-  _dataPacket.command = TC78H660FTG_CHANGE_ADDR;
+bool DualMotorDriver::setI2Caddress(uint8_t newAddress) {
+  _dataPacket.command = DualMotorDriver_CHANGE_ADDR;
   _dataPacket.dataSize = 1;
   _dataPacket.data[0] = newAddress;
 
   bool status = I2C_SendDataPacket(&_dataPacket);
 
-  if(status == true)
-  {
+  if (status == true) {
     _i2cAddress = newAddress;
     return true;
-  }
-  else
-  {
+  } else {
     return false;
   }
 }
@@ -93,22 +93,205 @@ bool DualMotorDriver::setI2Caddress(uint8_t newAddress)
 * @param  dutyCycleData: duty cycle data to be sent (0-100)
 * @retval Transmission status (1 --> No error, Otherwise --> Transmission error)
 */
-bool DualMotorDriver::Motor1Drive(uint8_t dutyCycleData, uint8_t directionData)
-{
+bool DualMotorDriver::Motor1Drive(uint8_t dutyCycleData, uint8_t directionData) {
   _dataPacket.command = (uint8_t)DRIVE_MOTOR1;
   _dataPacket.dataSize = (uint8_t)0x02;
   _dataPacket.data[0] = dutyCycleData;
   _dataPacket.data[1] = directionData;
+
   return I2C_SendDataPacket(&_dataPacket);
 }
 
-bool DualMotorDriver::Motor2Drive(uint8_t dutyCycleData, uint8_t directionData)
+/**
+* @brief 
+* @param 
+* @retval 
+*/
+bool DualMotorDriver::StepDriver(uint8_t in1A, uint8_t in1B, uint8_t in2A, uint8_t in2B)
 {
+  _dataPacket.command = (uint8_t)STEP_MOTOR;
+  _dataPacket.dataSize = (uint8_t)0x04;
+  _dataPacket.data[0]= in1A;
+  _dataPacket.data[1]= in1B;
+  _dataPacket.data[2]= in2A;
+  _dataPacket.data[3]= in2B;
+
+  return I2C_SendDataPacket(&_dataPacket);
+}
+
+/**
+* @brief 
+* @param 
+* @retval 
+*/
+bool DualMotorDriver::Motor2Drive(uint8_t dutyCycleData, uint8_t directionData) {
   _dataPacket.command = (uint8_t)DRIVE_MOTOR2;
   _dataPacket.dataSize = (uint8_t)0x02;
+
   _dataPacket.data[0] = dutyCycleData;
   _dataPacket.data[1] = directionData;
+
   return I2C_SendDataPacket(&_dataPacket);
+}
+
+/**
+* @brief 
+* @param 
+* @retval 
+*/
+bool DualMotorDriver::StandBy(uint8_t standby) {
+  _dataPacket.command = STANDBY;
+  _dataPacket.dataSize = (uint8_t)0x01;
+
+  if (standby == DISABLE) {
+    _dataPacket.data[0] = 0x00;
+  }
+  if (standby == ENABLE) {
+    _dataPacket.data[0] = 0x01;
+  }
+
+  return I2C_SendDataPacket(&_dataPacket);
+}
+
+/**
+* @brief 
+* @param 
+* @retval 
+*/
+bool DualMotorDriver::Mode(uint8_t mode) {
+  _dataPacket.command = MODE;
+  _dataPacket.dataSize = (uint8_t)0x01;
+
+  if (mode == STEP) {
+    _dataPacket.data[0] = 0x00;
+  }
+  if (mode == DCMOTOR) {
+    _dataPacket.data[0] = 0x01;
+  }
+
+  return I2C_SendDataPacket(&_dataPacket);
+}
+
+/**
+* @brief 
+* @param 
+* @retval 
+*/
+bool DualMotorDriver::PwmConfig(uint32_t freq) {
+  uint8_t freq1 = 0;
+  uint8_t freq2 = 0;
+  uint8_t freq3 = 0;
+  uint8_t freq4 = 0;
+
+  freq1 = (uint8_t)freq;
+  freq2 = (uint8_t)(freq >> 8);
+  freq3 = (uint8_t)(freq >> 16);
+  freq4 = (uint8_t)(freq >> 24);
+
+  _dataPacket.command = (uint8_t)MOTOR_PWM_SETTING;
+  _dataPacket.dataSize = (uint8_t)0x04;
+  _dataPacket.data[0] = freq1;
+  _dataPacket.data[1] = freq2;
+  _dataPacket.data[2] = freq3;
+  _dataPacket.data[3] = freq4;
+
+  return I2C_SendDataPacket(&_dataPacket);
+}
+
+/**
+* @brief 
+* @param 
+* @retval 
+*/
+Stepper::Stepper(int number_of_steps) {
+  this->step_number = 0;                    // which step the motor is on
+  this->direction = 0;                      // motor direction
+  this->last_step_time = 0;                 // time stamp in us of the last step taken
+  this->number_of_steps = number_of_steps;  // total number of steps for this motor
+}
+
+/**
+* @brief Sets the speed in revs per minute
+* @param 
+* @retval 
+*/
+void Stepper::setSpeed(long whatSpeed) {
+  this->step_delay = 60L * 1000L * 1000L / this->number_of_steps / whatSpeed;
+}
+
+/**
+* @brief Moves the motor steps_to_move steps.  If the number is negative, the motor moves in the reverse direction.
+* @param 
+* @retval 
+*/
+void Stepper::step(int steps_to_move) {
+  int steps_left = abs(steps_to_move);  // how many steps to take
+
+  // determine direction based on whether steps_to_mode is + or -:
+  if (steps_to_move > 0) { this->direction = 1; }
+  if (steps_to_move < 0) { this->direction = 0; }
+
+
+  // decrement the number of steps, moving one step each time:
+  while (steps_left > 0) {
+    unsigned long now = micros();
+    // move only if the appropriate delay has passed:
+    if (now - this->last_step_time >= this->step_delay) {
+      // get the timeStamp of when you stepped:
+      this->last_step_time = now;
+      // increment or decrement the step number,
+      // depending on direction:
+      if (this->direction == 1) {
+        this->step_number++;
+        if (this->step_number == this->number_of_steps) {
+          this->step_number = 0;
+        }
+      } else {
+        if (this->step_number == 0) {
+          this->step_number = this->number_of_steps;
+        }
+        this->step_number--;
+      }
+      // decrement the steps left:
+      steps_left--;
+      // step the motor to step number 0, 1, ..., {3 or 10}
+      stepMotor(this->step_number % 8);
+    }
+  }
+}
+
+/**
+* @brief  Moves the motor forward or backwards.
+* @param 
+* @retval 
+*/
+void Stepper::stepMotor(int thisStep) {
+  switch (thisStep) {
+    case 0:
+      StepDriver(0,0,0,1);
+      break;
+    case 1: 
+      StepDriver(1,0,0,1);
+      break;
+    case 2:
+      StepDriver(1,0,0,0);
+      break;
+    case 3:
+      StepDriver(1,1,0,0);
+      break;
+    case 4:
+      StepDriver(0,1,0,0);
+      break;
+    case 5:
+      StepDriver(0,1,1,0);
+      break;
+    case 6:
+      StepDriver(0,0,1,0);
+      break;
+    case 7:
+      StepDriver(0,0,1,0);
+      break;
+  }
 }
 
 /* I2C Data Transaction Funstions --------------------------------------------*/
@@ -118,52 +301,48 @@ bool DualMotorDriver::Motor2Drive(uint8_t dutyCycleData, uint8_t directionData)
 * @param  dataPacket: includes protocol to request data
 * @retval I2C 8bit data
 */
-uint8_t DualMotorDriver::I2C_ReadData8bit(TC78H660FTG_DataPacket_TypeDef* dataPacket)
-{
+uint8_t DualMotorDriver::I2C_ReadData8bit(DualMotorDriver_DataPacket_TypeDef *dataPacket) {
   _i2cPort->beginTransmission(_i2cAddress);
   _i2cPort->write(dataPacket->command);
   _i2cPort->endTransmission();
 
-  if(_i2cPort->requestFrom(_i2cAddress, static_cast<uint8_t>(1)) != 0)
+  if (_i2cPort->requestFrom(_i2cAddress, static_cast<uint8_t>(1)) != 0)
     return _i2cPort->read();
-  return 0;       
+  return false;
 }
 
 /**
-* @brief  Reads 16bit data from I2C interface
-* @param  dataPacket: includes protocol to request data
-* @retval I2C 16bit data
-*/
-uint16_t DualMotorDriver::I2C_ReadData16bit(TC78H660FTG_DataPacket_TypeDef* dataPacket)
-{
+ * @brief  Reads 16bit data from I2C interface
+ * @param  dataPacket: includes protocol to request data
+ * @retval I2C 16bit data
+ */
+uint16_t DualMotorDriver::I2C_ReadFirmwareData16bit(DualMotorDriver_DataPacket_TypeDef *dataPacket) {
   _i2cPort->beginTransmission(_i2cAddress);
   _i2cPort->write(dataPacket->command);
   _i2cPort->endTransmission();
 
-  if(_i2cPort->requestFrom(_i2cAddress, static_cast<uint8_t>(2)) != 0)
-  {
-    uint16_t i2cData = _i2cPort->read();
-    i2cData |= (_i2cPort->read() << 8);
-    return i2cData;
+  if (_i2cPort->requestFrom(_i2cAddress, static_cast<uint8_t>(2)) != 0) {
+    i2cData2 = _i2cPort->read();
+    i2cData1 = _i2cPort->read();
+    Serial.print("v"); Serial.print(i2cData1); Serial.print("."); Serial.println(i2cData2);
   }
-  return 0;       
+  return false;
 }
 
 /**
-* @brief  Sends data packet based on a custom defined protocol
-* @param  dataPacket: includes all related data 
-* @retval Transmission status (1 --> No error, Otherwise --> Transmission error)
-*/
-bool DualMotorDriver::I2C_SendDataPacket(TC78H660FTG_DataPacket_TypeDef* dataPacket)
-{
+ * @brief  Sends data packet based on a custom defined protocol
+ * @param  dataPacket: includes all related data
+ * @retval Transmission status (1 --> No error, Otherwise --> Transmission error)
+ */
+bool DualMotorDriver::I2C_SendDataPacket(DualMotorDriver_DataPacket_TypeDef *dataPacket) {
   _i2cPort->beginTransmission(_i2cAddress);
   _i2cPort->write(dataPacket->command);
   _i2cPort->write(dataPacket->dataSize);
 
-  for(uint8_t i = 0; i < _dataPacket.dataSize; i++)
+  for (uint8_t i = 0; i < _dataPacket.dataSize; i++)
     _i2cPort->write(_dataPacket.data[i]);
 
-  if(_i2cPort->endTransmission() == 0)
-  return true;
+  if (_i2cPort->endTransmission() == 0)
+    return true;
   return false;
 }

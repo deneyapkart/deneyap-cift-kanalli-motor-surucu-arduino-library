@@ -17,10 +17,19 @@ DualMotorDriver	KEYWORD1
 #######################################
 # Methods and Functions (KEYWORD2)
 #######################################
-begin				KEYWORD2
-isConnected			KEYWORD2
-getFwVersion			KEYWORD2
-setI2Caddress			KEYWORD2
+begin	KEYWORD2
+isConnected	KEYWORD2
+getFwVersion	KEYWORD2
+setI2Caddress	KEYWORD2
+Motor1Drive	KEYWORD2
+Motor2Drive	KEYWORD2
+StepDriver	KEYWORD2
+PwmConfig	KEYWORD2
+StandBy	KEYWORD2
+Mode	KEYWORD2
+Stepper	KEYWORD2
+setSpeed	KEYWORD2
+step	KEYWORD2
 #######################################
 # Constants (LITERAL1)
 #######################################
