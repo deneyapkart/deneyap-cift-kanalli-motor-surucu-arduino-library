@@ -4,7 +4,7 @@
 @mainpage     Deneyap Dual Channel Motor Driver Arduino library source file
 @maintainer   RFtek Electronics <techsupport@rftek.com.tr>
 @version      v1.1.0
-@date         November 22, 2022
+@date         December 01, 2022
 @brief        Includes functions to control Deneyap Dual Channel Motor Driver
               Arduino library
 
@@ -14,7 +14,6 @@ Library includes:
 --> I2C communication functions
 *******************************************************************************************
 */
-
 #include "Deneyap_CiftKanalliMotorSurucu.h"
 
 /* Device Status Functions ---------------------------------------------------*/
@@ -36,8 +35,8 @@ bool DualMotorDriver::begin(uint8_t address, uint32_t Freq, TwoWire &port) {
   _dataPacket = { 0 };
   PwmConfig(Freq);
   StandBy(ENABLE);
-  //Motor1Drive(0, 0);
-  //Motor2Drive(0, 0);
+  Motor1Drive(0, 0);
+  Motor2Drive(0, 0);
   return isConnected();
 }
 
@@ -104,7 +103,10 @@ bool DualMotorDriver::Motor1Drive(uint8_t dutyCycleData, uint8_t directionData) 
 
 /**
 * @brief 
-* @param 
+* @param  in1A:1 channel phase pin, digital 
+* @param  in1B:1 channel enable pin, pwm
+* @param  in2A:2 channel phase pin, digital 
+* @param  in2B:2 channel enable pin, pwm
 * @retval 
 */
 bool DualMotorDriver::StepDriver(uint8_t in1A, uint8_t in1B, uint8_t in2A, uint8_t in2B)
@@ -211,7 +213,7 @@ Stepper::Stepper(int number_of_steps) {
 }
 
 /**
-* @brief Sets the speed in revs per minute
+* @brief  Sets the speed in revs per minute
 * @param 
 * @retval 
 */
@@ -220,7 +222,7 @@ void Stepper::setSpeed(long whatSpeed) {
 }
 
 /**
-* @brief Moves the motor steps_to_move steps.  If the number is negative, the motor moves in the reverse direction.
+* @brief  Moves the motor steps_to_move steps.  If the number is negative, the motor moves in the reverse direction.
 * @param 
 * @retval 
 */
@@ -262,34 +264,34 @@ void Stepper::step(int steps_to_move) {
 
 /**
 * @brief  Moves the motor forward or backwards.
-* @param 
+* @param  thisStep: step of the motor
 * @retval 
 */
 void Stepper::stepMotor(int thisStep) {
   switch (thisStep) {
     case 0:
-      StepDriver(0,0,0,1);
+      StepDriver(0,0,1,100);
       break;
     case 1: 
-      StepDriver(1,0,0,1);
+      StepDriver(0,0,1,0);
       break;
     case 2:
-      StepDriver(1,0,0,0);
+      StepDriver(0,100,1,0);
       break;
     case 3:
-      StepDriver(1,1,0,0);
+      StepDriver(0,100,0,0);
       break;
     case 4:
-      StepDriver(0,1,0,0);
+      StepDriver(1,100,0,0);
       break;
     case 5:
-      StepDriver(0,1,1,0);
+      StepDriver(1,0,0,0);
       break;
     case 6:
-      StepDriver(0,0,1,0);
+      StepDriver(1,0,0,100);
       break;
     case 7:
-      StepDriver(0,0,1,0);
+      StepDriver(0,0,0,100);
       break;
   }
 }

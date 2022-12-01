@@ -1,5 +1,5 @@
 /*   
- *    StepMotorTamTurSurme örneği,
+ *    StepMotorSaatYonuSaatYonuTersi örneği,
  *    Bu örnekte temel konfigürasyon ayarları yapılmaktadır. 
  *    Step motor tam tur atmaktadır. Step motor birer adım ilerlemekte ve adım sayısını seri port ekranına yazdırmaktadır. 
  *
@@ -19,24 +19,18 @@ const int stepsPerRevolution = 4096;          // Tam tur adım sayısı, kulland
 
 Stepper myStepper(stepsPerRevolution);        // Stepper için class tanımlanması
 
-int adimSayisi= 0;
-
 void setup() {
   Serial.begin(115200);                       // Seri haberleşme başlatılması
   myStepper.begin(0x16);                      // begin(slaveAdress) fonksiyonu ile cihazların haberleşmesi başlatılması, varsayılan: begin(0x16,500), frekans:500Hz
   myStepper.Mode(STEP);
-  myStepper.setSpeed(60);                     // Step motor hızının belirlenmesi
+  myStepper.setSpeed(30);                     // Step motor hızının belirlenmesi
 }
 
 void loop() {
-  myStepper.step(1);                          // Step motorun 1 adım ilerlemesi
-  Serial.print("adım sayısı:");
-  Serial.println(adimSayisi);                 // Adım sayısının seri port ekranına yazdırılması
-  adimSayisi++;
-  delay(10);
-  if(stepsPerRevolution == adimSayisi) {      // Tam tur atılırsa
-    Serial.println("Tam tur atıldı");         // "Tam tur atıldı" seri port ekranına yazdırılması
-    delay(3000);                              // 3 saniye bekleme süresi
-    adimSayisi=0;                             // Adım sayısının sıfırlanması
-  }
+  Serial.println("Step motor saat yönünde dönüyor...");
+  myStepper.step(2048);                       // Step motorun saat yönünde yarım tur atması
+  delay(1000);
+  Serial.println("Step motor saat yönünün tersine dönüyor...");
+  myStepper.step(-2048);                      // Step motorun saat yönü tersinde yarım tur atması
+  delay(1000);
 }

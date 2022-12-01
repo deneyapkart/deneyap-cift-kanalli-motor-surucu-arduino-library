@@ -13,7 +13,7 @@ Deneyap_CiftKanalliMotorSurucu	KEYWORD1
 #######################################
 
 DualMotorDriver	KEYWORD1
-
+Stepper	KEYWORD1
 #######################################
 # Methods and Functions (KEYWORD2)
 #######################################

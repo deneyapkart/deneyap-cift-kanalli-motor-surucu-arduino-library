@@ -40,7 +40,7 @@ Bu Arduino kütüphanesi Deneyap Çift Kanallı Motor Sürücü I2C çevre birim
 - `library.properties` Arduino yöneticisi için genel kütüphane özellikleri
 
 ## Sürüm Geçmişi
-1.1.0 - yeni class eklendi(Stepper), yeni fonksiyonlar eklendi(StepDriver, PwmConfig, StandBy, Mode, setSpeed, step), fonksiyon güncellendi(begin), yeni örnekler eklendi(StepMotorTamTurSurme), örnek güncellendi(CiftKanalliDCmotorSurme)
+1.1.0 - yeni class eklendi(Stepper), yeni fonksiyonlar eklendi(StepDriver, PwmConfig, StandBy, Mode, setSpeed, step), fonksiyon güncellendi(begin), yeni örnekler eklendi(StepMotorTamTurSurme, CiftKanalliDCmotorHizlanmasi, CiftKanalliDCmotorSurmeNoI2C, StepMotorSaatYonuSaatYonuTersi, StepMotorSurmeNoI2C), örnek güncellendi(CiftKanalliDCmotorSurme)
 
 1.0.0 - ilk sürüm
 
@@ -51,10 +51,10 @@ Bu Arduino kütüphanesi Deneyap Çift Kanallı Motor Sürücü I2C çevre birim
 ## Headers
 |Çift Kanallı Motor Sürücü| Fonksiyon| Kart pinleri |
 | :---     | :---   |   :---  |
-| 3.3V     | Güç    | 3.3V    |
+| 3.3V     |3.3V Besleme Gerilimi| 3.3V    |
 | GND      | Toprak |GND      |
-| SDA      | I2C Data  | SDA pini |
-| SCL      | I2C Clock | SCL pini|
+| SDA      | Çift Yönlü Veri Hattı | SDA pini |
+| SCL      | Veri Hattı Zaman Senkronizasyon İşareti	 | SCL pini|
 |SWIM | Debug | bağlantı yok |
 |RES  | Debug | bağlantı yok |
 |IN1A	|Phase A |Dijital pin|

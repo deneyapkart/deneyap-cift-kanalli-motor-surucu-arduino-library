@@ -3,7 +3,7 @@
 @file         Deneyap_CiftKanalliMotorSurucu.h
 @mainpage     Deneyap Dual Channel Motor Driver Arduino library header file
 @version      v1.1.0
-@date         November 22, 2022
+@date         December 01, 2022
 @brief        This file contains all function prototypes and macros
               for Deneyap Dual Channel Motor Driver Arduino library
 ********************************************************************************************

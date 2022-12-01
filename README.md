@@ -41,7 +41,7 @@ This Arduino library allows you to use Deneyap Dual Channel Motor Driver with I2
 - `library.properties ` General library properties for the Arduino package manager
 
 ## Version History
-1.1.0 - added new class(Stepper), added new functions(StepDriver, PwmConfig, StandBy, Mode, setSpeed, step), updated function(begin), added new sketch(StepMotorTamTurSurme), updated sketch(CiftKanalliDCmotorSurme)
+1.1.0 - added new class(Stepper), added new functions(StepDriver, PwmConfig, StandBy, Mode, setSpeed, step), updated function(begin), added new sketches(StepMotorTamTurSurme, CiftKanalliDCmotorHizlanmasi, CiftKanalliDCmotorSurmeNoI2C, StepMotorSaatYonuSaatYonuTersi, StepMotorSurmeNoI2C), updated sketch(CiftKanalliDCmotorSurme)
 
 1.0.0 - initial release
 
@@ -84,4 +84,6 @@ This Arduino library allows you to use Deneyap Dual Channel Motor Driver with I2
 |BO-|2. motor (-)|
 
 ## :bookmark_tabs:License Information
+For step motor's class based on [Stepper Library for Arduino Library](https://github.com/arduino-libraries/Stepper). Changed to work with Deneyap Dual Motor Driver.
+
 Please review the [LICENSE](https://github.com/deneyapkart/deneyap-cift-kanalli-motor-surucu-arduino-library/blob/master/LICENSE) file for license information.
