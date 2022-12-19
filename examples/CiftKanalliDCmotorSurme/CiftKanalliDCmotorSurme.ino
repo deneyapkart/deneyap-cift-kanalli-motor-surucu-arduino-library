@@ -15,17 +15,15 @@ DualMotorDriver MotorSurucu;                        // DualMotorDriver için cla
 
 void setup() {
   Serial.begin(115200);                             // Seri haberleşme başlatılması
-  MotorSurucu.begin(0x16);                          // begin(slaveAdress) fonksiyonu ile cihazların haberleşmesi başlatılması, varsayılan: begin(0x16,500), frekans:500Hz
-  MotorSurucu.Mode(DCMOTOR);
+  if (!MotorSurucu.begin(0x16)) {                   // begin(slaveAdress) fonksiyonu ile cihazların haberleşmesi başlatılması, varsayılan: begin(0x16,500), frekans:500Hz
+      delay(3000);
+      Serial.println("I2C bağlantısı başarısız");   // I2C bağlantısı başarısız olursa seri port ekranına yazdırılması
+      while(1);
+  } 
 }
 
 void loop() {                              
-  /* Motor1Drive(dutyCycleDegeri, yonBilgisi) 
-     Motor2Drive(dutyCycleDegeri, yonBilgisi)
-     DUTYCYCLE   -------> %0-100
-     ILERI        -------> 1
-     GERI         -------> 0  */
-  MotorSurucu.Motor1Drive(80,1);                    // Birinci motor çalıştırılması. %80 dutycyle hızı ile ileri yönde hareket edilmesi
-  MotorSurucu.Motor2Drive(75,0);                    // İkinci motor çalıştırılması. %75 dutycyle hızı ile geri yönde hareket edilmesi
-  delay(50);                                        // 50 milisaniye bekleme süresi
+  MotorSurucu.MotorDrive(MOTOR1, 80, 1);            // Birinci motor çalıştırılması. %80 dutycyle hızı ile ileri yönde hareket edilmesi
+  MotorSurucu.MotorDrive(MOTOR2, 75, 0);            // İkinci motor çalıştırılması.  %75 dutycyle hızı ile geri yönde hareket edilmesi
+  if(MotorSurucu.CheckMotorError()==1) Serial.println("HATA !!! Lütfen motorları kontrol edin");
 }

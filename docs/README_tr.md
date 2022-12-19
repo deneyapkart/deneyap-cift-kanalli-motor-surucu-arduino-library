@@ -40,6 +40,8 @@ Bu Arduino kütüphanesi Deneyap Çift Kanallı Motor Sürücü I2C çevre birim
 - `library.properties` Arduino yöneticisi için genel kütüphane özellikleri
 
 ## Sürüm Geçmişi
+1.1.1 - fonksiyonlar güncellendi, yeni hata fonksiyonu eklendi, yeni yapılandırma parametreleri eklendi, hatalar giderildi
+
 1.1.0 - yeni class eklendi(Stepper), yeni fonksiyonlar eklendi(StepDriver, PwmConfig, StandBy, Mode, setSpeed, step), fonksiyon güncellendi(begin), yeni örnekler eklendi(StepMotorTamTurSurme, CiftKanalliDCmotorHizlanmasi, CiftKanalliDCmotorSurmeNoI2C, StepMotorSaatYonuSaatYonuTersi, StepMotorSurmeNoI2C), örnek güncellendi(CiftKanalliDCmotorSurme)
 
 1.0.0 - ilk sürüm

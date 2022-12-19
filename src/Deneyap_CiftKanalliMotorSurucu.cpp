@@ -3,8 +3,8 @@
 @file         Deneyap_CiftKanalliMotorSurucu.cpp
 @mainpage     Deneyap Dual Channel Motor Driver Arduino library source file
 @maintainer   RFtek Electronics <techsupport@rftek.com.tr>
-@version      v1.1.0
-@date         December 01, 2022
+@version      v1.1.1
+@date         December 19, 2022
 @brief        Includes functions to control Deneyap Dual Channel Motor Driver
               Arduino library
 
@@ -25,18 +25,21 @@ Library includes:
 */
 bool DualMotorDriver::begin(uint8_t address, uint32_t Freq, TwoWire &port) {
   Wire.begin();
-#if defined(ARDUINO_DYM)
+#if defined (ARDUINO_DYM) || defined (ARDUINO_DYMv2)
   Wire.setClock(100000);
 #else
   Wire.setClock(50000);
 #endif
   _i2cAddress = address;
   _i2cPort = &port;
-  _dataPacket = { 0 };
-  PwmConfig(Freq);
-  StandBy(ENABLE);
+  _dataPacket = { 0, 0, 0 };
+
+  ResetMotorParameters();
+  PwmConfig(Freq);  
+  SelectMotorType();
   Motor1Drive(0, 0);
   Motor2Drive(0, 0);
+  
   return isConnected();
 }
 
@@ -59,7 +62,7 @@ bool DualMotorDriver::isConnected() {
 * @retval Device firmware version
 */
 uint16_t DualMotorDriver::getFwVersion() {
-  _dataPacket.command = DualMotorDriver_REQUEST_FW_VERSION;
+  _dataPacket.command = REQUEST_FW_VERSION;
   _dataPacket.dataSize = 0;
   return I2C_ReadFirmwareData16bit(&_dataPacket);
 }
@@ -69,9 +72,8 @@ uint16_t DualMotorDriver::getFwVersion() {
 * @param  address: I2C address to be set
 * @retval Transmission status (1 --> No error, Otherwise --> Transmission error)
 */
-
 bool DualMotorDriver::setI2Caddress(uint8_t newAddress) {
-  _dataPacket.command = DualMotorDriver_CHANGE_ADDR;
+  _dataPacket.command = CHANGE_ADDR;
   _dataPacket.dataSize = 1;
   _dataPacket.data[0] = newAddress;
 
@@ -87,6 +89,165 @@ bool DualMotorDriver::setI2Caddress(uint8_t newAddress) {
 
 /* I2C Data Manipulation Functions -------------------------------------------*/
 
+void DualMotorDriver::MotorDrive(uint8_t motorID, uint8_t dutyCycleData, bool directionData){
+  switch(motorID) {
+    case MOTOR1:
+      switch(directionData) {
+        case FORWARD:
+          switch(_reverse1) {
+            case SET:
+              for(uint8_t i = _dutyCycleData1; i > 0; i--) {
+                _dutyCycleData1 -= 1;
+                Motor1Drive(_dutyCycleData1, !directionData);
+                delayMicroseconds(delayus);
+  
+                if(_dutyCycleData1 == 0) {
+                  _reverse1 = RESET;
+                  Motor1Drive(_dutyCycleData1, !directionData);
+                  delayMicroseconds(delayus);                  
+                }
+              }
+            case RESET:
+              _forward1 = SET;
+              if(dutyCycleData > _dutyCycleData1) {
+                for(uint8_t i = _dutyCycleData1; i < dutyCycleData; i++) {
+                  _dutyCycleData1 += 1;
+                  Motor1Drive(_dutyCycleData1, directionData);
+                  delayMicroseconds(delayus);
+                }  
+              }
+              else if(dutyCycleData < _dutyCycleData1) {
+                for(uint8_t i = _dutyCycleData1; i > dutyCycleData; i--) {
+                  _dutyCycleData1 -= 1;
+                  Motor1Drive(_dutyCycleData1, directionData);
+                  delayMicroseconds(delayus);
+                }
+              }
+              else if(dutyCycleData == _dutyCycleData1) {
+                _dutyCycleData1 = _dutyCycleData1;
+              }
+              break;
+          }
+          break;
+          
+        case REVERSE:
+          switch(_forward1) {
+            case SET:
+              for(uint8_t i = _dutyCycleData1; i > 0; i--) {
+                _dutyCycleData1 -= 1;
+                Motor1Drive(_dutyCycleData1, !directionData);
+                delayMicroseconds(delayus);
+  
+                if(_dutyCycleData1 == 0) {
+                  _forward1 = RESET;
+                  Motor1Drive(_dutyCycleData1, !directionData);
+                  delayMicroseconds(delayus);                  
+                }
+              }
+            case RESET:
+              _reverse1 = SET;
+              if(dutyCycleData > _dutyCycleData1) {
+                for(uint8_t i = _dutyCycleData1; i < dutyCycleData; i++) {
+                  _dutyCycleData1 += 1;
+                  Motor1Drive(_dutyCycleData1, directionData);
+                  delayMicroseconds(delayus);
+                }  
+              }
+              else if(dutyCycleData < _dutyCycleData1) {
+                for(uint8_t i = _dutyCycleData1; i > dutyCycleData; i--) {
+                  _dutyCycleData1 -= 1;
+                  Motor1Drive(_dutyCycleData1, directionData);
+                  delayMicroseconds(delayus);
+                }
+              }
+              else if(dutyCycleData == _dutyCycleData1) {
+                _dutyCycleData1 = _dutyCycleData1;
+              }
+              break;
+          }
+          break;
+      }  
+      break;
+
+    case MOTOR2:
+      switch(directionData) {
+        case FORWARD:
+          switch(_reverse2) {
+            case SET:
+              for(uint8_t i = _dutyCycleData2; i > 0; i--) {
+                _dutyCycleData2 -= 1;
+                Motor2Drive(_dutyCycleData2, !directionData);
+                delayMicroseconds(delayus);
+                if(_dutyCycleData2 == 0) {
+                  _reverse2 = RESET;
+                  Motor2Drive(_dutyCycleData2, !directionData);
+                  delayMicroseconds(delayus);                  
+                }
+              }
+            case RESET:
+              _forward2 = SET;
+              if(dutyCycleData > _dutyCycleData2) {
+                for(uint8_t i = _dutyCycleData2; i < dutyCycleData; i++) {
+                  _dutyCycleData2 += 1;
+                  Motor2Drive(_dutyCycleData2, directionData);
+                  delayMicroseconds(delayus);
+                }  
+              }
+              else if(dutyCycleData < _dutyCycleData2) {
+                for(uint8_t i = _dutyCycleData2; i > dutyCycleData; i--) {
+                  _dutyCycleData2 -= 1;
+                  Motor2Drive(_dutyCycleData2, directionData);
+                  delayMicroseconds(delayus);
+                }
+              }
+              else if(dutyCycleData == _dutyCycleData2) {
+                _dutyCycleData2 = _dutyCycleData2;
+              }
+              break;
+          }
+          break;
+          
+        case REVERSE:
+          switch(_forward2) {
+            case SET:
+              for(uint8_t i = _dutyCycleData2; i > 0; i--) {
+                _dutyCycleData2 -= 1;
+                Motor2Drive(_dutyCycleData2, !directionData);
+                delayMicroseconds(delayus);
+  
+                if(_dutyCycleData2 == 0) {
+                  _forward2 = RESET;
+                  Motor2Drive(_dutyCycleData2, !directionData);
+                  delayMicroseconds(delayus);                  
+                }
+              }
+            case RESET:
+              _reverse2 = SET;
+              if(dutyCycleData > _dutyCycleData2) {
+                for(uint8_t i = _dutyCycleData2; i < dutyCycleData; i++) {
+                  _dutyCycleData2 += 1;
+                  Motor2Drive(_dutyCycleData2, directionData);
+                  delayMicroseconds(delayus);
+                }  
+              }
+              else if(dutyCycleData < _dutyCycleData2) {
+                for(uint8_t i = _dutyCycleData2; i > dutyCycleData; i--) {
+                  _dutyCycleData2 -= 1;
+                  Motor2Drive(_dutyCycleData2, directionData);
+                  delayMicroseconds(delayus);
+                }
+              }
+              else if(dutyCycleData == _dutyCycleData2) {
+                _dutyCycleData2 = _dutyCycleData2;
+              }
+              break;
+          }
+          break;
+      }
+      break;
+  }
+}
+
 /**
 * @brief  Sends motor drive pwm data based on data protocol format
 * @param  dutyCycleData: duty cycle data to be sent (0-100)
@@ -97,26 +258,6 @@ bool DualMotorDriver::Motor1Drive(uint8_t dutyCycleData, uint8_t directionData) 
   _dataPacket.dataSize = (uint8_t)0x02;
   _dataPacket.data[0] = dutyCycleData;
   _dataPacket.data[1] = directionData;
-
-  return I2C_SendDataPacket(&_dataPacket);
-}
-
-/**
-* @brief 
-* @param  in1A:1 channel phase pin, digital 
-* @param  in1B:1 channel enable pin, pwm
-* @param  in2A:2 channel phase pin, digital 
-* @param  in2B:2 channel enable pin, pwm
-* @retval 
-*/
-bool DualMotorDriver::StepDriver(uint8_t in1A, uint8_t in1B, uint8_t in2A, uint8_t in2B)
-{
-  _dataPacket.command = (uint8_t)STEP_MOTOR;
-  _dataPacket.dataSize = (uint8_t)0x04;
-  _dataPacket.data[0]= in1A;
-  _dataPacket.data[1]= in1B;
-  _dataPacket.data[2]= in2A;
-  _dataPacket.data[3]= in2B;
 
   return I2C_SendDataPacket(&_dataPacket);
 }
@@ -138,18 +279,40 @@ bool DualMotorDriver::Motor2Drive(uint8_t dutyCycleData, uint8_t directionData) 
 
 /**
 * @brief 
+* @param  in1A:1 channel phase pin
+* @param  in1B:1 channel enable pin
+* @param  in2A:2 channel phase pin
+* @param  in2B:2 channel enable pin
+* @retval 
+*/
+bool DualMotorDriver::StepDrive(bool in1A, bool in1B, bool in2A, bool in2B) {
+  _dataPacket.command = (uint8_t)STEP_MOTOR;
+  _dataPacket.dataSize = (uint8_t)0x04;
+  _dataPacket.data[0]= in1A;
+  _dataPacket.data[1]= in1B;
+  _dataPacket.data[2]= in2A;
+  _dataPacket.data[3]= in2B;
+
+  return I2C_SendDataPacket(&_dataPacket);
+}
+
+/**
+* @brief 
 * @param 
 * @retval 
 */
-bool DualMotorDriver::StandBy(uint8_t standby) {
+bool DualMotorDriver::StandbyMode(bool status) {
   _dataPacket.command = STANDBY;
   _dataPacket.dataSize = (uint8_t)0x01;
 
-  if (standby == DISABLE) {
-    _dataPacket.data[0] = 0x00;
-  }
-  if (standby == ENABLE) {
-    _dataPacket.data[0] = 0x01;
+  switch(status) {
+    case DISABLE:
+      _dataPacket.data[0] = 0x00;
+      break;
+
+    case ENABLE:
+      _dataPacket.data[0] = 0x01;
+      break;
   }
 
   return I2C_SendDataPacket(&_dataPacket);
@@ -160,35 +323,89 @@ bool DualMotorDriver::StandBy(uint8_t standby) {
 * @param 
 * @retval 
 */
-bool DualMotorDriver::Mode(uint8_t mode) {
+bool DualMotorDriver::SelectMode(bool driveMode) {
   _dataPacket.command = MODE;
   _dataPacket.dataSize = (uint8_t)0x01;
 
-  if (mode == STEP) {
-    _dataPacket.data[0] = 0x00;
-  }
-  if (mode == DCMOTOR) {
-    _dataPacket.data[0] = 0x01;
+  switch(driveMode) {
+    case STEP:
+      _dataPacket.data[0] = 0x00;
+      break;
+
+    case DC:
+      _dataPacket.data[0] = 0x01;
+      break;
   }
 
   return I2C_SendDataPacket(&_dataPacket);
 }
 
+/**
+* @brief 
+* @param 
+* @retval 
+*/
+bool DualMotorDriver::CheckMotorError() {
+  _dataPacket.command = CHECK_MOTOR_ERROR;
+  _dataPacket.dataSize = 0;
+  return I2C_ReadData8bit(&_dataPacket);
+}
+
+/**
+* @brief 
+* @param 
+* @retval 
+*/
+void DualMotorDriver::SelectModeDC(void){
+  /* Mode selection is set up by the input state 
+     of the MODE pin after releasing standby mode,
+     at least 1us setup time needed */
+  StandbyMode(DISABLE);
+  delay(1);
+  SelectMode(DC);
+  delay(1);
+  StandbyMode(ENABLE);
+}
+
+/**
+* @brief 
+* @param 
+* @retval 
+*/
+void DualMotorDriver::SelectModeSTEP(void){
+  /* Mode selection is set up by the input state 
+     of the MODE pin after releasing standby mode,
+     at least 1us setup time needed */
+  StandbyMode(DISABLE);
+  delay(1);
+  SelectMode(STEP);
+  delay(1);
+  StandbyMode(ENABLE);
+}
+
+/**
+* @brief 
+* @param 
+* @retval 
+*/
+void DualMotorDriver::SelectMotorType(void){
+  if(_stepMotorSelected) {
+    SelectModeSTEP();
+    _stepMotorSelected = 0;
+  } else {
+    SelectModeDC();
+  }
+}
 /**
 * @brief 
 * @param 
 * @retval 
 */
 bool DualMotorDriver::PwmConfig(uint32_t freq) {
-  uint8_t freq1 = 0;
-  uint8_t freq2 = 0;
-  uint8_t freq3 = 0;
-  uint8_t freq4 = 0;
-
-  freq1 = (uint8_t)freq;
-  freq2 = (uint8_t)(freq >> 8);
-  freq3 = (uint8_t)(freq >> 16);
-  freq4 = (uint8_t)(freq >> 24);
+  uint8_t freq1 = (uint8_t)freq;
+  uint8_t freq2 = (uint8_t)(freq >> 8);
+  uint8_t freq3 = (uint8_t)(freq >> 16);
+  uint8_t freq4 = (uint8_t)(freq >> 24);
 
   _dataPacket.command = (uint8_t)MOTOR_PWM_SETTING;
   _dataPacket.dataSize = (uint8_t)0x04;
@@ -205,11 +422,26 @@ bool DualMotorDriver::PwmConfig(uint32_t freq) {
 * @param 
 * @retval 
 */
+void DualMotorDriver::ResetMotorParameters(void) {
+  _dutyCycleData1 = 0;
+  _dutyCycleData2 = 0;
+  _forward1 = 0;
+  _reverse1 = 0;
+  _forward2 = 0;
+  _reverse2 = 0;
+}
+
+/**
+* @brief 
+* @param 
+* @retval 
+*/
 Stepper::Stepper(int number_of_steps) {
   this->step_number = 0;                    // which step the motor is on
   this->direction = 0;                      // motor direction
   this->last_step_time = 0;                 // time stamp in us of the last step taken
   this->number_of_steps = number_of_steps;  // total number of steps for this motor
+  _stepMotorSelected = 1;
 }
 
 /**
@@ -270,28 +502,28 @@ void Stepper::step(int steps_to_move) {
 void Stepper::stepMotor(int thisStep) {
   switch (thisStep) {
     case 0:
-      StepDriver(0,0,1,100);
+      StepDrive(1,0,0,0);
       break;
     case 1: 
-      StepDriver(0,0,1,0);
+      StepDrive(1,1,0,0);
       break;
     case 2:
-      StepDriver(0,100,1,0);
+      StepDrive(0,1,0,0);
       break;
     case 3:
-      StepDriver(0,100,0,0);
+      StepDrive(0,1,1,0);
       break;
     case 4:
-      StepDriver(1,100,0,0);
+      StepDrive(0,0,1,0);
       break;
     case 5:
-      StepDriver(1,0,0,0);
+      StepDrive(0,0,1,1);
       break;
     case 6:
-      StepDriver(1,0,0,100);
+      StepDrive(0,0,0,1);
       break;
     case 7:
-      StepDriver(0,0,0,100);
+      StepDrive(1,0,0,1);
       break;
   }
 }

@@ -4,10 +4,10 @@
  *    Step motor saat yöne tersinde dönmektedir. 
  *
  *    28BYJ-48 step motoruna göre yazılmıştır. Farklı bir step motor kullanırsanız gerekli değişiklikleri gerçekleştirin.
- *    STEP MOTOR MAVİ     -> A0-
- *    STEP MOTOR PEMBE    -> B0+
- *    STEP MOTOR SARI     -> A0+
- *    STEP MOTOR TURUNCU  -> B0-
+ *    STEP MOTOR MAVİ     -> B0+ (Terminal(Sağ Üst) çıkışı)
+ *    STEP MOTOR PEMBE    -> A0- (Terminal(Sağ Alt) çıkışı)
+ *    STEP MOTOR SARI     -> B0- (Terminal(Sağ Üst) çıkışı)
+ *    STEP MOTOR TURUNCU  -> A0+ (Terminal(Sağ Alt) çıkışı)
  *    
  *    >>>Deneyap Motor Sürücü STNBY pini 3.3v bağlanmalıdır<<<<
  *
@@ -25,8 +25,8 @@ void setup() {
 }
 
 void loop() {
-  //saatYonu(5);          // Step motorun saat yönünde döndürülmesi, her bir adım arasında 5 mili saniye beklemesi
-  saatYonuTersi(5);       // Step motorun saat yönünün tersine döndürülmesi, her bir adım arasında 5 mili saniye beklemesi
+  //saatYonu(5);          // Step motorun saat yönünde döndürülmesi, her bir adım arasında 5 milisaniye beklemesi
+  saatYonuTersi(5);       // Step motorun saat yönünün tersine döndürülmesi, her bir adım arasında 5 milisaniye beklemesi
 }
 
 void saatYonu(int bekleme){

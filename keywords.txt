@@ -14,22 +14,31 @@ Deneyap_CiftKanalliMotorSurucu	KEYWORD1
 
 DualMotorDriver	KEYWORD1
 Stepper	KEYWORD1
+
 #######################################
 # Methods and Functions (KEYWORD2)
 #######################################
+
 begin	KEYWORD2
 isConnected	KEYWORD2
 getFwVersion	KEYWORD2
 setI2Caddress	KEYWORD2
-Motor1Drive	KEYWORD2
-Motor2Drive	KEYWORD2
+CheckMotorError	KEYWORD2
+MotorDrive	KEYWORD2
 StepDriver	KEYWORD2
 PwmConfig	KEYWORD2
-StandBy	KEYWORD2
-Mode	KEYWORD2
+StandbyMode	KEYWORD2
+SelectModeDC	KEYWORD2
+SelectModeSTEP	KEYWORD2
+SelectMotorType	KEYWORD2
 Stepper	KEYWORD2
 setSpeed	KEYWORD2
 step	KEYWORD2
+
 #######################################
 # Constants (LITERAL1)
 #######################################
+MOTOR1	LITERAL1
+MOTOR2	LITERAL1
+DISABLE	LITERAL1
+ENABLE	LITERAL1
