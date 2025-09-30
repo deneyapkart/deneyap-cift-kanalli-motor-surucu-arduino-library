@@ -89,7 +89,9 @@ bool DualMotorDriver::setI2Caddress(uint8_t newAddress) {
 
 /* I2C Data Manipulation Functions -------------------------------------------*/
 
-void DualMotorDriver::MotorDrive(uint8_t motorID, uint8_t dutyCycleData, bool directionData){
+void DualMotorDriver::MotorDrive(uint8_t motorID, int32_t dutyCycleData, bool directionData){
+  if (dutyCycleData < 0) dutyCycleData = 0;
+  else if (dutyCycleData > 100) dutyCycleData = 100;
   switch(motorID) {
     case MOTOR1:
       switch(directionData) {

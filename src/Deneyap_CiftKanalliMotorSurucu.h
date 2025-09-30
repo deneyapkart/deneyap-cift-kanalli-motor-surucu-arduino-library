@@ -71,7 +71,7 @@ class DualMotorDriver
     bool CheckMotorError(void);
 
     /* Functions for data manipulation (create and send packet data) */
-    void MotorDrive(uint8_t motorID, uint8_t dutyCycleData, bool directionData);
+    void MotorDrive(uint8_t motorID, int32_t dutyCycleData, bool directionData);
     bool StepDrive(bool in1A, bool in1B, bool in2A, bool in2B);
     bool PwmConfig(uint32_t freq);
     bool StandbyMode(bool status);
